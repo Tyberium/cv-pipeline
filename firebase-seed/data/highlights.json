@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "career_event_id": "ww_001",
+      "description": "Designed and deployed critical data pipelines with zero downtime and no data loss, optimising workloads to reduce costs and delivering a 25% reduction in the company's total AWS cloud bill.",
+      "sort_order": 1
+    },
+    {
+      "career_event_id": "ww_001",
+      "description": "Re-architected and migrated a six-year-old multi-tenant Datalake to a new AWS platform with fully CI-integrated deployments to dev and production.",
+      "sort_order": 2
+    },
+    {
+      "career_event_id": "ww_001",
+      "description": "Broke down a billing data silo by automating reconciliation in a QuickSight dashboard shared with finance — reducing billing queries to zero.",
+      "sort_order": 3
+    }
+  ]
+}

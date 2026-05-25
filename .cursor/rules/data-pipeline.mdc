@@ -1,0 +1,91 @@
+﻿---
+description: Pipeline-specific rules — event shapes, DuckDB, producer/consumer patterns
+globs: src/{producer,consumer,db}.rs
+alwaysApply: false
+---
+
+# Data Pipeline Standards
+
+## Event Shape
+
+Every event on the `cv_events` Redpanda topic uses the PostHog capture format.
+An engineer at PostHog should open `producer.rs` and immediately recognise their own event structure.
+
+```json
+{
+  "event": "career_milestone",
+  "distinct_id": "dave_carroll",
+  "token": "cv_pipeline_v1",
+  "timestamp": "2026-05-22T08:23:00Z",
+  "properties": { ... }
+}
+```
+
+The `properties` object contains the actual payload. Never put payload fields at the top level.
+
+## Defined Event Types
+
+Only these event types exist. Do not add new ones without updating `data_models.md` first.
+
+| Event | Writes to |
+|---|---|
+| `profile_update` | `dim_profile` |
+| `career_milestone` | `fact_career_events` |
+| `responsibility_added` | `dim_responsibilities` |
+| `project_highlight` | `dim_key_projects` |
+| `skill_added` | `dim_tech_stack` |
+| `education_entry` | `dim_education` |
+
+## Consumer Routing
+
+The consumer matches on the `event` field and dispatches. Each arm calls a dedicated `db::insert_*` function. No catch-all arm that silently swallows unknown events — if an unrecognised event arrives, log it and continue.
+
+```rust
+// ✅ correct
+match event_type.as_str() {
+    "career_milestone"     => db::insert_career_event(&conn, &props)?,
+    "responsibility_added" => db::insert_responsibility(&conn, &props)?,
+    // ... one arm per event type
+    unknown => tracing::warn!("unknown event type: {}", unknown),
+}
+
+// ❌ wrong — silent discard
+_ => {}
+```
+
+## DuckDB Queries
+
+Parameterised queries only. No string interpolation into SQL.
+
+```rust
+// ✅ correct
+conn.execute(
+    "INSERT INTO dim_tech_stack VALUES (?, ?, ?, ?, ?, ?)",
+    params![id, skill, category, level, sort_order, source],
+)?;
+
+// ❌ wrong
+conn.execute(
+    &format!("INSERT INTO dim_tech_stack VALUES ('{}', ...)", skill),
+    [],
+)?;
+```
+
+Schema creation lives entirely in `db.rs`. `consumer.rs` calls `db::init_schema()` and then `db::insert_*` functions. It does not contain any SQL strings.
+
+## Producer — Messy JSON Handling
+
+`raw_history.json` is intentionally inconsistent (mixed date formats, varying field names, responsibilities as string vs array). The normalisation happens in `producer.rs` using the raw input structs in `models.rs`.
+
+- Date parsing: try known formats in order, fail loudly if none match (don't silently produce a wrong date)
+- Field aliasing: use `#[serde(alias = "...")]` on raw structs — don't write manual match chains
+- Responsibilities as string: split on `\n`, trim, filter empty lines
+
+The log line `"Bringing order to Chaos, tidying up JSON data"` plays while this runs.
+
+## Firebase
+
+- Fetch Firestore data via REST API using `reqwest` — no Firebase SDK
+- The service account key is inside the decrypted `raw_history.json` under `firebase_credentials`
+- Fetch `cv/skills`, `cv/highlights` once during the produce phase
+- `cv/availability` is **not** fetched during the pipeline — the `/api/profile` Axum handler fetches it live per request

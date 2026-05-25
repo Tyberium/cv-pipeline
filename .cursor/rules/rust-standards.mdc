@@ -1,0 +1,72 @@
+---
+description: Rust coding standards — file structure, error handling, comments
+globs: src/**/*.rs
+alwaysApply: false
+---
+
+# Rust Standards
+
+## File Responsibilities
+
+Each file owns exactly one concern. Do not bleed logic across files.
+
+| File | Owns |
+|---|---|
+| `main.rs` | Log script output, process orchestration, startup sequence |
+| `producer.rs` | Read JSON + Firebase, emit events to Redpanda |
+| `consumer.rs` | Read from Redpanda, route events, write to DuckDB |
+| `db.rs` | DuckDB connection, schema creation, all query functions |
+| `api.rs` | Axum router, all HTTP handlers |
+| `models.rs` | All `serde` structs — raw input types and clean output types |
+
+If a function doesn't belong in any of these, question whether it needs to exist.
+
+## Error Handling
+
+Use `?` to propagate errors. Let libraries surface their own failures.
+
+```rust
+// ✅ correct — rdkafka knows what went wrong, let it say so
+producer.send(record, Timeout::Never).await?;
+
+// ❌ wrong — wrapping an error that already has a message
+producer.send(record, Timeout::Never).await
+    .map_err(|e| anyhow!("Failed to send to Redpanda: {}", e))?;
+```
+
+Do not add error handling layers around things that already handle their own errors:
+- `rdkafka` delivery failures propagate fine
+- `duckdb` query errors propagate fine
+- `reqwest` HTTP errors propagate fine
+- `serde_json` parse errors propagate fine
+
+Custom error types are only justified at **process boundaries** — e.g. a public function that callers need to match on specific variants. Not inside internal pipeline steps.
+
+## Function Size
+
+If a function is getting long, split it — not into closures, into named functions.
+A function should do one thing. If you need a comment to explain what a block inside a function does, that block is probably a function.
+
+## Comments
+
+**Do comment:**
+- Attribution to PostHog source: `// Borrowed from PostHog/posthog: rust/capture/src/token.rs`
+- Intentional over-engineering: `// Unnecessary. That's the point.`
+- Non-obvious design decisions: why Redpanda runs as a child process, why availability isn't an event
+
+**Don't comment:**
+- What the code obviously does: no `// connect to database`, `// return result`
+- Every function — only comment where the why isn't obvious from the code
+
+## Code Sprawl
+
+- No `mod utils`. If something is a utility, it belongs in the file that uses it or it's not needed.
+- No `helpers.rs`, no `common.rs`. Named, purposeful files only.
+- No dead code. If a function isn't called, delete it.
+- `#[allow(dead_code)]` is not acceptable as a permanent state.
+
+## Async
+
+- `tokio::spawn` closures should be thin — call a function, don't embed logic.
+- `tokio::join!` the producer and consumer tasks. The pipeline is complete when both finish.
+- No `tokio::time::sleep` loops polling for state — use proper async coordination.

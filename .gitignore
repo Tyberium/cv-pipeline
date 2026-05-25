@@ -1,0 +1,35 @@
+# Rust
+/target/
+Cargo.lock
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Vite build output (served by Axum at runtime)
+/static/
+
+# DuckDB - generated at runtime, never committed
+cv_gold.db
+cv_gold.db.wal
+
+# NEVER commit the plaintext CV data
+# raw_history.json is the ENCRYPTED file - that one IS committed
+# raw_history_plain.json is the plaintext source - this must never be committed
+raw_history_plain.json
+
+# Plaintext headshot — only photo.enc is committed (same CV_SECRET as raw_history)
+photo.png
+
+# Environment / secrets
+.env
+.env.local
+firebase-seed/out/
+**/cv-reader-key.json
+
+# Editor
+.vscode/
+*.swp
+
+# Accidental npm at repo root (no package.json here)
+/package-lock.json

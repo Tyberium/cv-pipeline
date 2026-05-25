@@ -1,0 +1,61 @@
+---
+description: Project context, philosophy, and development order for the CV pipeline
+alwaysApply: true
+---
+
+# CV Pipeline — Project Overview
+
+This project is a CV delivered as a Docker image. The recruiter runs one command and gets a local website. The pipeline *is* the CV — it mirrors PostHog's architecture and demonstrates the skills rather than listing them.
+
+```bash
+docker run -p 8080:8080 -e CV_SECRET=<provided-on-request> ghcr.io/tyberium/cv:latest
+```
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Ingestion | Rust producer (`tokio`, `reqwest`, `serde_json`) |
+| Message bus | Redpanda (Kafka-compatible, child process) |
+| Storage | DuckDB (`duckdb` crate) |
+| API + static server | Axum |
+| Frontend | Vite + React + Mantine (pre-built at image build time) |
+
+**One compiled Rust binary (`cv_engine`). No runtime Node. No Python. No sidecars.**
+
+## Single-Run Pipeline
+
+The pipeline runs **once on startup**, then the web server takes over:
+1. Decrypt `raw_history.json` and `photo.enc` with `CV_SECRET`
+2. Fetch dynamic data from Firebase Firestore
+3. Emit PostHog-format events to Redpanda (`cv_events` topic)
+4. Consume events → write to DuckDB (`cv_gold.db`)
+5. Start Axum — serve API + pre-built static files
+
+It is not a long-running stream. There are no retry loops. There is no scheduler.
+
+## Source of Truth for Design
+
+All schema, API shapes, event types, and data lineage are defined in:
+- `planning/data_models.md` (canonical for this repo)
+- `planning/final_plan.md`
+- `README.md` — copy/photo encrypt workflow (`CV_SECRET`, `cargo run --bin encrypt`)
+
+Do not invent new tables, endpoints, or event types. If a change is needed, update those documents first.
+
+Copy draft: `planning/copy.md` → merge into `raw_history_plain.json` → `cargo run --bin encrypt`.
+
+## Development Order
+
+1. Vite + Mantine frontend — real fetch calls from day one, empty/loading states when API isn't up
+2. Axum server with real routes returning empty-but-correctly-shaped JSON
+3. DuckDB schema (`db.rs`)
+4. `consumer.rs` — events → DuckDB
+5. `producer.rs` — JSON + Firebase → Redpanda
+6. Redpanda wiring
+7. `main.rs` — log script + orchestration
+8. Dockerfile (multi-stage)
+9. Tests
+10. GitHub Actions CI/CD
+
+The frontend never uses hardcoded mock data. Empty states and loading spinners stand in until the pipeline runs. When content appears in the browser, that is the confirmation the pipeline worked end-to-end.

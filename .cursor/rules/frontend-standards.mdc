@@ -1,0 +1,92 @@
+---
+description: Frontend standards — React, TypeScript, Mantine, component structure
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend Standards
+
+## Pages
+
+Five pages. No more, no less.
+
+| Page | File | Data source |
+|---|---|---|
+| About / Hero | `pages/About.tsx` | `/api/profile`, `/api/profile/photo` |
+| Experience | `pages/Experience.tsx` | `/api/experience` |
+| Skills | `pages/Skills.tsx` | `/api/skills` |
+| Education | `pages/Education.tsx` | `/api/education` |
+| Pipeline Health | `pages/PipelineHealth.tsx` | `/api/pipeline` |
+
+## Component Rules
+
+- One component per file, named export — no default exports
+- Pages are thin: data fetching + layout only. Logic goes in hooks.
+- Extract a component when it is used in **more than one place**. Not before.
+- If a component file is getting long, the component is probably doing too much.
+
+```tsx
+// ✅ correct — named export
+export function ExperienceCard({ job }: { job: CareerEvent }) { ... }
+
+// ❌ wrong — default export makes refactoring harder
+export default function ExperienceCard(...) { ... }
+```
+
+## Types
+
+All API response types live in `src/types.ts`. They mirror the shapes in `data_models.md` exactly. Do not define inline types for API responses — reference `types.ts`.
+
+```ts
+// src/types.ts — single source of truth for API shapes
+export interface CareerEvent {
+  id: string;
+  company: string;
+  title: string;
+  start_date: string;
+  end_date: string | null;
+  responsibilities: string[];
+  key_projects: KeyProject[];
+  source: 'json' | 'firebase';
+}
+```
+
+## Data Fetching
+
+Simple `useEffect` + `useState` per page. No external data-fetching library.
+The data is static after page load — there is no need for caching, invalidation, or background refetch.
+
+**No mock data, ever.** The frontend makes real fetch calls from day one. Before the pipeline runs, pages render their loading/empty states. When the pipeline completes and DuckDB is populated, content appears — that moment is the end-to-end proof the system works. Hardcoded data would mask that signal.
+
+```tsx
+// ✅ correct — real fetch, proper loading state
+const [experience, setExperience] = useState<CareerEvent[] | null>(null);
+useEffect(() => {
+  fetch('/api/experience')
+    .then(r => r.json())
+    .then(setExperience);
+}, []);
+
+if (!experience) return <Loader />;
+if (experience.length === 0) return <Text c="dimmed">Pipeline hasn't run yet.</Text>;
+```
+
+No Redux. No Zustand. No React Query. The data is read-only and fetched once.
+
+## Styling
+
+Use `BP` constants from `theme.ts` for colours/spacing. Pages may use inline `style` with `BP` (BattlePlan layout). Prefer Mantine `Text`, `Stack`, etc. for typography. No ad-hoc hex outside `theme.ts`.
+
+```tsx
+// ✅ correct — uses Mantine
+<Text size="sm" c="dimmed">{job.title}</Text>
+
+// ❌ wrong — inline style
+<p style={{ fontSize: '14px', color: '#888' }}>{job.title}</p>
+```
+
+## No Unnecessary Abstraction
+
+Do not create wrapper components around single Mantine components just to rename them.
+Do not create a `Button.tsx` that just re-exports Mantine's `Button`.
+Do not create a `theme/index.ts` that re-exports tokens that Mantine already owns.

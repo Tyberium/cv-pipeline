@@ -1,0 +1,68 @@
+[package]
+name = "cv_engine"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "cv_engine"
+path = "src/main.rs"
+
+# Dev-time utility — encrypts raw_history_plain.json → raw_history.json
+[[bin]]
+name = "encrypt"
+path = "src/bin/encrypt.rs"
+
+# Dev-time utility — seed Firestore cv/* documents (Phase 6)
+[[bin]]
+name = "firebase_seed"
+path = "src/bin/firebase_seed.rs"
+
+[features]
+# kafka feature wires Redpanda as the message bus.
+# Disabled by default so local Windows builds (cargo run/test) keep working —
+# rdkafka-sys needs cmake + a Unix-compatible toolchain.
+# The Dockerfile builds with --features kafka (Linux, cmake already present).
+kafka = ["rdkafka"]
+
+[dependencies]
+# Async runtime
+tokio        = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+
+# Kafka / Redpanda client — mklove build (no cmake), compiles librdkafka from source inside Docker
+rdkafka      = { version = "0.36", optional = true }
+
+# Storage
+duckdb       = { version = "1", features = ["bundled"] }
+
+# Web server + static files
+axum         = "0.7"
+tower-http   = { version = "0.5", features = ["fs"] }
+
+# Serialisation
+serde        = { version = "1", features = ["derive"] }
+serde_json   = "1"
+
+# HTTP client — Firebase REST calls
+reqwest      = { version = "0.12", features = ["json"] }
+
+# Encryption — CV_SECRET → AES-256-GCM
+aes-gcm      = "0.10"
+pbkdf2       = "0.12"
+sha2         = "0.10"
+
+# Date handling — normalising messy raw_history.json dates
+chrono       = { version = "0.4", features = ["serde"] }
+
+# Google Cloud authentication — service account → bearer token
+gcp_auth     = "0.12"
+
+# Error handling
+anyhow       = "1"
+
+# Logging
+tracing            = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

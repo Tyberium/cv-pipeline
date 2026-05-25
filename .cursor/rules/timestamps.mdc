@@ -1,0 +1,88 @@
+---
+description: Single source of truth for timestamp handling — Firebase, Rust, TypeScript
+alwaysApply: true
+---
+
+# Timestamps
+
+Timestamp handling lives in exactly one place per layer. A "timestamp types not compatible" error in the console is a rule violation, not a runtime surprise.
+
+## The Problem
+
+Firebase Firestore timestamps are objects: `{ _seconds: number, _nanoseconds: number }`.
+TypeScript's `Date` and ISO string `"2026-05-22T08:23:00Z"` are not that.
+Rust's `chrono::DateTime` is not that either.
+DuckDB stores `TIMESTAMP`, which Axum serialises as an ISO string.
+
+Every layer has its own format. There is one nominated conversion point per boundary.
+
+## Canonical Format
+
+**ISO 8601 string everywhere that crosses a boundary**: `"2026-05-22T08:23:00Z"`
+
+- Redpanda events carry timestamps as ISO strings
+- DuckDB stores `TIMESTAMP` columns (Axum serialises these as ISO strings automatically)
+- The frontend receives ISO strings and uses them as strings — it does not parse them into `Date` objects unless it needs to display them formatted
+
+## Rust — Producer
+
+All timestamps are normalised to `chrono::DateTime<Utc>` before being emitted to Redpanda.
+The serialised form in the event JSON is always an ISO 8601 string.
+
+```rust
+// Single conversion point in producer.rs
+fn parse_date(raw: &str) -> Result<NaiveDate> {
+    // Try known formats in order — fail loudly if none match
+    for fmt in ["%Y-%m-%d", "%B %Y", "%b-%y", "%Y-%m"] {
+        if let Ok(d) = NaiveDate::parse_from_str(raw, fmt) {
+            return Ok(d);
+        }
+    }
+    anyhow::bail!("unrecognised date format: {}", raw)
+}
+```
+
+No date parsing happens in `consumer.rs`, `db.rs`, or `api.rs`. They receive already-normalised values.
+
+## Rust — Firebase Response
+
+Firebase REST API returns Firestore timestamps as:
+```json
+{ "timestampValue": "2026-05-22T08:23:00Z" }
+```
+The REST API (unlike the SDK) already gives us an ISO string. Deserialise directly to `String`, then parse with `chrono` in the producer before emitting.
+
+## TypeScript — Frontend
+
+All date/time values arriving from `/api/*` are ISO strings. They stay as strings until the moment they are displayed.
+
+```ts
+// types.ts — timestamps are strings, not Date objects
+export interface CareerEvent {
+  start_date: string;   // "2023-10-01"
+  end_date: string | null;
+}
+```
+
+Formatting for display happens in one utility function:
+
+```ts
+// src/utils/dates.ts — the only place dates are touched in the frontend
+export function formatMonthYear(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+
+export function formatYear(iso: string): string {
+  return new Date(iso).getFullYear().toString();
+}
+```
+
+No other file imports `new Date(...)` or calls `.toLocaleDateString` directly.
+No `dayjs`. No `date-fns`. Two functions in one file.
+
+## Rules
+
+- Never pass a raw Firebase timestamp object to anything expecting a string or `Date`
+- Never call `new Date()` outside of `src/utils/dates.ts` in the frontend
+- Never parse a date string in `consumer.rs`, `db.rs`, or `api.rs` — parsing is the producer's job
+- If a timestamp format is wrong at runtime, the fix goes in the single conversion function, nowhere else

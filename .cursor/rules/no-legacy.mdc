@@ -1,0 +1,38 @@
+---
+description: No backwards compatibility, no legacy shims — delete and move on
+alwaysApply: true
+---
+
+# No Legacy
+
+This project has no users, no dependents, and no migration burden. There is nothing to be backwards compatible with.
+
+## When a design decision changes
+
+Delete the old thing. Rename the new thing correctly. Move on.
+
+Do not:
+- Leave old code commented out "just in case"
+- Add a compatibility shim to support a data shape that existed for one day
+- Create a `_v2` variant of anything
+- Add a `deprecated` flag to a struct that was written this week
+- Write an adapter between two internal representations that one of them should simply become
+
+If a design choice turns out to be wrong, the correct fix is to change the design — not to build a layer that bridges old and new.
+
+## If something was genuinely tricky to rework
+
+A single comment is fine:
+
+```rust
+// Reworked: originally used VARCHAR[] for interests but duckdb crate
+// doesn't support list params cleanly — storing as JSON string instead.
+```
+
+That's it. No scaffolding. No wrapper. No "for historical reasons" abstraction.
+
+## The test
+
+Before adding any compatibility layer, ask: "If I deleted the old thing entirely, would anything outside this codebase break?"
+
+The answer is always no. So delete it.

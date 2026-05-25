@@ -1,0 +1,163 @@
+name: Build and Publish CV
+
+# Trigger on push to main (build + push) and PRs to main (test only, no push).
+# In a real project you'd add branch protection, required reviewers, and restrict
+# pushes to main — skipping all of that here, this is a single-author CV.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/tyberium/cv
+
+jobs:
+
+  # ── Job 1: Test ──────────────────────────────────────────────────────────────
+  #
+  # Compiles and runs the Rust test suite + verifies the frontend builds cleanly.
+  # Must pass before the Docker build is allowed to start.
+  #
+  # Design note — double compile: this job compiles Rust in debug mode without
+  # the kafka feature. The Docker build in job 2 compiles again in release mode
+  # with kafka. These produce different artifacts and can't share build outputs.
+  # In a real project you'd either run cargo test inside the Docker build itself
+  # (one compile, one cache) or use a shared build artifact + separate test runner.
+  # For a CV project the cold-build overhead is acceptable; the caches make
+  # subsequent runs fast regardless.
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # Caches ~/.cargo/registry, ~/.cargo/git, and target/ keyed on Cargo.lock.
+      # DuckDB's ~100 C++ translation units only recompile when the lockfile changes.
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Rust tests
+        run: cargo test
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Catches TypeScript errors and broken imports before they reach the image build.
+      - name: Frontend build check
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+  # ── Job 2: Build and push image ──────────────────────────────────────────────
+  #
+  # Builds the multi-stage Docker image and pushes to GHCR.
+  # Only runs on push to main — PRs run the test job above but never push an image.
+  #
+  # The Docker layer cache (type=gha) stores the slow layers between runs:
+  # - RUN cargo build --release --features kafka  (~12 min cold, seconds warm)
+  # - RUN npm ci && npm run build                 (~30s cold, seconds warm)
+  # Layer cache busts only when src/ or Cargo.lock changes, not on every push.
+  build-and-push:
+    name: Build and Push Image
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Two tags: `latest` for recruiters, `sha-<short>` for traceability.
+      # No semver — this project has no versioning story.
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Job 3: Smoke test ────────────────────────────────────────────────────────
+  #
+  # Pulls the just-built image and runs it with CV_SECRET.
+  # Catches "compiles fine but fails at runtime" — wrong secret handling,
+  # Redpanda startup failure, missing static files, etc.
+  # Cheap: just docker run + five curl calls.
+  smoke-test:
+    name: Smoke Test
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull built image
+        run: docker pull ${{ env.IMAGE_NAME }}:latest
+
+      - name: Start container
+        run: |
+          docker run -d \
+            --name cv_smoke \
+            -p 8080:8080 \
+            -e "CV_SECRET=${{ secrets.CV_SECRET }}" \
+            ${{ env.IMAGE_NAME }}:latest
+
+      # The pipeline (decrypt → Redpanda → consume) runs before Axum starts,
+      # so we poll until /api/pipeline responds rather than assuming a fixed delay.
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/api/pipeline; then
+              echo "Server is up"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          echo "Server did not start — dumping logs"
+          docker logs cv_smoke
+          exit 1
+
+      - name: Verify API endpoints
+        run: |
+          curl -sf http://localhost:8080/api/profile   | jq '.name'
+          curl -sf http://localhost:8080/api/experience | jq 'length'
+          curl -sf http://localhost:8080/api/skills     | jq 'keys'
+          curl -sf http://localhost:8080/api/education  | jq 'length'
+          curl -sf http://localhost:8080/api/pipeline   | jq '.events_consumed'
+
+      - name: Tear down
+        if: always()
+        run: docker rm -f cv_smoke

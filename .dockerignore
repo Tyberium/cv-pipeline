@@ -1,0 +1,24 @@
+# Rust build artefacts — huge, always exclude
+target/
+
+# Frontend deps and local build output
+frontend/node_modules/
+static/
+
+# Runtime-generated database — rebuilt every pipeline run
+cv_gold.db
+cv_gold.db.wal
+
+# NEVER include plaintext CV data
+raw_history_plain.json
+
+# Dev/planning noise
+planning/
+.cursor/
+.git/
+*.md
+!README.md
+
+# Editor
+.vscode/
+*.swp
