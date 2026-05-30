@@ -123,6 +123,15 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      # Fails fast with a clear message — common after renaming DAVE_SECRET → CV_SECRET.
+      - name: Check CV_SECRET is configured
+        run: |
+          if [ -z "${{ secrets.CV_SECRET }}" ]; then
+            echo "::error::GitHub secret CV_SECRET is missing or empty."
+            echo "Add it under Settings → Secrets and variables → Actions (not DAVE_SECRET)."
+            exit 1
+          fi
+
       - name: Pull built image
         run: docker pull ${{ env.IMAGE_NAME }}:latest
 
@@ -152,11 +161,16 @@ jobs:
 
       - name: Verify API endpoints
         run: |
-          curl -sf http://localhost:8080/api/profile   | jq '.name'
-          curl -sf http://localhost:8080/api/experience | jq 'length'
-          curl -sf http://localhost:8080/api/skills     | jq 'keys'
-          curl -sf http://localhost:8080/api/education  | jq 'length'
-          curl -sf http://localhost:8080/api/pipeline   | jq '.events_consumed'
+          set -e
+          curl -sf http://localhost:8080/api/profile   | jq -e '.name'
+          curl -sf http://localhost:8080/api/experience | jq -e 'length'
+          curl -sf http://localhost:8080/api/skills     | jq -e 'keys'
+          curl -sf http://localhost:8080/api/education  | jq -e 'length'
+          curl -sf http://localhost:8080/api/pipeline   | jq -e '.events_consumed'
+        # If decrypt failed or pipeline did not complete, profile/pipeline are null and jq exits 1.
+      - name: Dump container logs on verify failure
+        if: failure()
+        run: docker logs cv_smoke 2>&1 || true
 
       - name: Tear down
         if: always()

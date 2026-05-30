@@ -152,7 +152,7 @@ async fn main() -> anyhow::Result<()> {
         plog!("      The producer emits all events to the cv_events topic.");
         plog!("      A consumer task reads from that topic and writes to DuckDB.");
         plog!("      In a real PostHog-style system this would be a separate service;");
-        plog!("      here it is deliberately collapsed for recruiter UX.");
+        plog!("      here it is deliberately collapsed for UX.");
         let redpanda_log = std::fs::OpenOptions::new().append(true).open(&log_path)?;
         consumed = run_pipeline_redpanda(&conn, &events, redpanda_log).await?;
         plog!("      \u{2713} {} events consumed from cv_events \u{2192} DuckDB", consumed);
@@ -223,7 +223,7 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
 
-    plog!("      Site served at http://localhost:8080");
+    plog!("      Site served at http://localhost:8080 please click the link to open");
     tracing::info!("listening on http://localhost:8080");
 
     axum::serve(

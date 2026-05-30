@@ -3,18 +3,52 @@ import { EmptyState } from '../components/EmptyState';
 import type { Skill, SkillsByCategory } from '../types';
 import { BP, cardStyle, cardTitleStyle } from '../theme';
 
-function SkillPill({ skill }: { skill: Skill }) {
-  // expert = full accent, proficient = muted accent, familiar = muted grey
-  const styles: React.CSSProperties = skill.level === 'expert'
-    ? { background: 'rgba(97,175,239,0.18)', border: `1px solid rgba(97,175,239,0.4)`, color: BP.textAccent }
-    : skill.level === 'proficient'
-    ? { background: 'rgba(97,175,239,0.08)', border: `1px solid rgba(97,175,239,0.2)`, color: BP.textAccent }
-    : { background: 'rgba(255,255,255,0.04)', border: `1px solid ${BP.border}`, color: BP.textSecondary };
+type SkillLevel = NonNullable<Skill['level']>;
 
+function pillStyle(level: SkillLevel | null): React.CSSProperties {
+  if (level === 'expert') {
+    return { background: 'rgba(97,175,239,0.18)', border: `1px solid rgba(97,175,239,0.4)`, color: BP.textAccent };
+  }
+  if (level === 'proficient') {
+    return { background: 'rgba(97,175,239,0.08)', border: `1px solid rgba(97,175,239,0.2)`, color: BP.textAccent };
+  }
+  return { background: 'rgba(255,255,255,0.04)', border: `1px solid ${BP.border}`, color: BP.textSecondary };
+}
+
+const pillBase: React.CSSProperties = {
+  borderRadius: '20px',
+  padding: '0.2rem 0.7rem',
+  fontSize: '0.7rem',
+  fontWeight: 500,
+};
+
+function SkillPill({ skill }: { skill: Skill }) {
   return (
-    <span style={{ ...styles, borderRadius: '20px', padding: '0.2rem 0.7rem', fontSize: '0.7rem', fontWeight: 500 }}>
+    <span style={{ ...pillStyle(skill.level), ...pillBase }}>
       {skill.skill}
     </span>
+  );
+}
+
+const LEVEL_KEY: { level: SkillLevel; label: string; hint: string }[] = [
+  { level: 'expert', label: 'Expert', hint: 'Daily driver — production experience' },
+  { level: 'proficient', label: 'Proficient', hint: 'Comfortable shipping real work' },
+  { level: 'familiar', label: 'Familiar', hint: 'Still building experience' },
+];
+
+function SkillLevelKey() {
+  return (
+    <div style={{ ...cardStyle, padding: '0.75rem 1rem' }}>
+      <div style={{ ...cardTitleStyle, marginBottom: '0.5rem' }}>Key</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem 1.25rem' }}>
+        {LEVEL_KEY.map(({ level, label, hint }) => (
+          <div key={level} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            <span style={{ ...pillStyle(level), ...pillBase, flexShrink: 0 }}>{label}</span>
+            <span style={{ fontSize: '0.75rem', color: BP.textMuted, lineHeight: 1.4 }}>{hint}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -38,6 +72,8 @@ export function Skills() {
         </h2>
         <p style={{ margin: 0, fontSize: '0.8125rem', color: BP.textMuted }}>Technologies & tools</p>
       </div>
+
+      <SkillLevelKey />
 
       {/* 2-col grid of category cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>

@@ -80,6 +80,7 @@ function HighlightsBlock({ text }: { text: string }) {
 }
 
 const DOCKER_RUN_RE = /docker run[^\n]+/;
+const SOURCE_URL_RE = /^Source:\s*(https?:\/\/\S+)/;
 
 function WhyPostHogBlock({ text }: { text: string }) {
   const paragraphs = toParagraphs(text);
@@ -87,6 +88,14 @@ function WhyPostHogBlock({ text }: { text: string }) {
   return (
     <Stack gap="md" w="100%">
       {paragraphs.map((paragraph, i) => {
+        if (paragraph === 'So I built one.') {
+          return (
+            <Text key={i} size="sm" lh={1.75} fw={600} style={{ color: BP.textPrimary }}>
+              {paragraph}
+            </Text>
+          );
+        }
+
         const dockerMatch = paragraph.match(DOCKER_RUN_RE);
         if (dockerMatch) {
           const before = paragraph.slice(0, dockerMatch.index).trim();
@@ -120,6 +129,19 @@ function WhyPostHogBlock({ text }: { text: string }) {
             </Stack>
           );
         }
+
+        const sourceMatch = paragraph.match(SOURCE_URL_RE);
+        if (sourceMatch) {
+          return (
+            <Text key={i} size="sm" lh={1.75} style={{ color: BP.textSecondary }}>
+              Source:{' '}
+              <a href={sourceMatch[1]} target="_blank" rel="noreferrer" style={{ color: BP.textAccent }}>
+                {sourceMatch[1]}
+              </a>
+            </Text>
+          );
+        }
+
         return (
           <Text key={i} size="sm" lh={1.75} style={{ color: BP.textSecondary }}>
             {paragraph}
@@ -201,7 +223,7 @@ export function About() {
             <div style={{ fontSize: '1rem', color: BP.textAccent, marginBottom: '0.75rem' }}>
               {profile.title}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <Pill>{profile.email}</Pill>
               <Pill>{profile.location}</Pill>
               {profile.linkedin && (
@@ -215,18 +237,30 @@ export function About() {
                 </a>
               )}
             </div>
-            {profile.availability && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <span style={{
-                  background: profile.availability.available ? 'rgba(0,255,100,0.1)' : 'rgba(255,165,0,0.1)',
-                  border:     `1px solid ${profile.availability.available ? 'rgba(0,255,100,0.3)' : 'rgba(255,165,0,0.3)'}`,
-                  color:      profile.availability.available ? '#00cc55' : '#ffa500',
-                  borderRadius: '20px', padding: '0.2rem 0.75rem', fontSize: '0.75rem', fontWeight: 500,
+            <div style={{ borderTop: `1px solid ${BP.border}`, paddingTop: '0.65rem' }}>
+              <span style={{ fontSize: '0.6875rem', color: BP.textMuted, marginRight: '0.5rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                This CV:
+              </span>
+              {(['Rust', 'TypeScript', 'Axum', 'DuckDB', 'Redpanda'] as const).map(tech => (
+                <span key={tech} style={{
+                  display: 'inline-block',
+                  marginRight: '0.35rem',
+                  background: (tech === 'Rust' || tech === 'TypeScript')
+                    ? 'rgba(97,175,239,0.15)'
+                    : 'rgba(255,165,0,0.08)',
+                  border: `1px solid ${(tech === 'Rust' || tech === 'TypeScript')
+                    ? 'rgba(97,175,239,0.4)'
+                    : 'rgba(255,165,0,0.2)'}`,
+                  color: (tech === 'Rust' || tech === 'TypeScript') ? BP.textAccent : '#ffa500',
+                  borderRadius: '20px',
+                  padding: '0.15rem 0.6rem',
+                  fontSize: '0.7rem',
+                  fontWeight: (tech === 'Rust' || tech === 'TypeScript') ? 700 : 500,
                 }}>
-                  {profile.availability.message}
+                  {tech}
                 </span>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
       </div>

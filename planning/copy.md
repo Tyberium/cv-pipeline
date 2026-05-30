@@ -13,43 +13,51 @@
 
 ## Professional Summary
 
-I am a Data Engineer with nearly ten years of experience in the field, backed by a prior decade of work as a Sysadmin. Having migrated from block-level infrastructure to high-scale cloud platforms, I've designed and optimized systems across a diverse range of companies and navigated everything from highly regulated financial environments to unstructured open-source APIs. 
+I am a Data Engineer with nearly ten years of experience in the field, backed by a prior decade of work as a Sysadmin. Having migrated from block-level infrastructure to high-scale cloud platforms, I've designed and optimised systems across a diverse range of companies and navigated everything from highly regulated financial environments to unstructured open-source APIs. 
 
-My career journey to Data Engineer started with managing Gluster storage clusters, NetApp data layers, and bare-metal Hadoop stacks, before progressing to early distributed systems like Storm and Solr on self-managed bare-metal cloud. Today, I leverage that deep "under-the-hood" systems knowledge to design, optimize, and refactor modern cloud data infrastructure across AWS, GCP, and Databricks. Because I fundamentally understand how hardware and low-level distributed systems process data, I build cloud abstractions and pipelines that are fast, exceptionally stable, and highly cost-efficient.
+My career journey to Data Engineer started with managing Gluster storage clusters, NetApp data layers, and bare-metal Hadoop stacks, before progressing to early distributed systems like Storm and Solr on self-managed bare-metal cloud. Today, I leverage that deep "under-the-hood" systems knowledge to design, optimise and refactor modern cloud data infrastructure across AWS, GCP and Databricks. Because I fundamentally understand how hardware and low-level distributed systems process data, I build cloud abstractions and pipelines that are fast, stable, and cost-efficient.
 
-I bring a proven track record of establishing the engineering standards, data quality requirements, and governance practices that eliminate noise and ensure clean, trustworthy insights.
+I bring a proven track record of establishing the engineering standards, data quality requirements and governance practices that eliminate noise and ensure clean, trustworthy insights.
 
 ### Key Accomplishments & Technical Highlights
 
-* **Cloud Cost Optimization:** Led an infrastructure optimization strategy that reduced the company’s **total aggregate AWS bill by 25%**, transforming data retention and processing efficiency into major enterprise-wide savings.
-* **Data Lake Migration:** Refactored and migrated a complex, multi-tenanted Data Lake in strict alignment with AWS Well-Architected practices, successfully isolating it from shared infrastructure, code bottlenecks, and cross-tenant concerns.
+* **Cloud Cost Optimisation:** Led an infrastructure optimisation strategy that reduced the company’s **total aggregate AWS bill by 25%**, transforming data retention and processing efficiency into major enterprise-wide savings.
+* **Data Lake Migration:** Refactored and migrated a complex, multi-tenanted Data Lake in strict alignment with AWS Well-Architected practices, successfully isolating it from shared infrastructure, code bottlenecks and cross-tenant concerns.
 * **AI-Accelerated Delivery:** Adopted agentic development workflows to drastically accelerate project delivery, compressing the multi-tenanted Data Lake migration timeline from **months to weeks**.
-* **Team Working & Mentorship:** Focus on building a professional, fun, and collaborative engineering culture. Actively mentor team members through constructive code reviews and real-time pair-programming sessions via Slack/Tuple to unblock technical hurdles.
+* **Team Working & Mentorship:** Focus on building a professional, fun and collaborative engineering culture. Actively mentor team members through constructive code reviews and real-time pair-programming sessions via Slack/Tuple to unblock technical hurdles.
 
 ### Technical Skills Matrix
 
 * **Cloud Platforms:** AWS (Expert), GCP (Proficient)
 * **Languages:** Python (Expert), SQL (Expert), TypeScript (Familiar), Rust (Familiar)
-* **Data Engineering:** Spark / PySpark (Expert), Prefect (Proficient), Databricks (Proficient), Kafka (Familiar), DuckDB (Familiar)
+* **Data Engineering:** Spark / PySpark (Expert), Prefect (Proficient), Databricks (Proficient), Kafka (Proficient), DuckDB (Familiar)
 * **DevOps & CI/CD:** Terraform (Expert), GitHub Actions (Expert), Docker (Proficient)
 * **Databases:** PostgreSQL (Proficient), Elasticsearch / Solr (Familiar)
 * **Core Systems & Tools:** Git (Expert), Linux (Proficient)
 
 ### Interests & Off-Duty
 
-When I’m not optimizing the "machine spirit" of a production data lake, you can find me building hobby projects over at battleplan.uk, painting my way through my miniatures backlog, or occasionally getting to roll some dice at the tabletop. At 12:30 sharp, my Chihuahua politely requests her daily "walkies" by either sitting directly on my keyboard or testing the structural integrity of my office chair, and it's always a pleasure getting out and about with her. I also enjoy ice-skating (if you can call my stumbling around the rink "skating") with my kids, and whenever the wind blows just right, taking the power kite out for a spin.
+When I’m not optimising the "machine spirit" of a production data lake, you can find me building hobby projects over at http://battleplan.uk, painting my way through my miniatures backlog, or occasionally getting to roll some dice at the tabletop. At 12:30 sharp, my Chihuahua politely requests her daily "walkies" by either sitting directly on my keyboard or testing the structural integrity of my office chair and it's always a pleasure getting out and about with her. I also enjoy ice-skating (if you can call my stumbling around the rink "skating") with my kids, playing pool, and whenever the wind blows just right, taking the kite out for a spin.
 
 ---
 
 ## Why I'm applying to PostHog
 
-I came across PostHog a few months ago when I was asked to set up a pipeline inside it to export data to S3 (Where's the Hive-style Partition by default button?), and the retro-style website drew me in straight away. After a bit more poking around, I started to feel that the ethos, company style, and direction very much resonated with me. I'm drawn particularly to the autonomy that is granted to engineers, and the openness of approach — from open-sourcing software to publishing pay scales (seriously, if I was Judge Dredd, this would be the LAW). When I saw the position to join the Ingestion team, I immediately started searching the garden to find a hedgehog I could use to measure myself, see where I fit in. (No luck yet; the Chihuahua has chased them all off).
+I was recently introduced to PostHog as part of a pipeline project. As with any new tool, I headed over to the site to familiarise myself with it. I was instantly hooked by the retro-PC design — it immediately felt like something a bit special. The thought "I wonder what this is like as a place to work" lodged itself firmly in my head.
 
-Elephant in the room: I'm pretty new to Rust. I started playing with it toward the end of last year. I'd come across it a few times, but it was after I installed Ruff (a Rust-based Python linter) and it linted the entire repo I was working on in around 0.3 seconds that I had that "Oh, so that's what they mean by 'it's faster than Python'" moment. It's a language I'd love to get more into, would mercilessly use Claude to help out with, and if I did get the job, I'd make sure to spend the interim/notice period phase getting up to speed so I turned up on day 1 ready to get stuck in.
+Once off work's VPN, I had a proper dig around your Product Engineer Handbook and company pages. The more I read, the more I knew I wanted to work with you. I'm incredibly impressed by the radical transparency about well… everything, your focus on solving real user problems at speed, and your explicit "No assholes" policy.
 
-I hope you enjoy my CV, available here: `docker run -p 8080:8080 -e CV_SECRET=<provided-on-request> ghcr.io/tyberium/cv:latest`
+When I saw you were recruiting for a Backend Engineer on the Ingestion team, I knew I had to apply. I also started searching the garden for a hedgehog to measure myself against — no luck yet; the Chihuahua has chased them all off.
 
-It's over-engineered, weird, and totally unnecessary by design. You may even recognize some of the event schemas.
+In the PostHog spirit of being delightfully weird, this site is not a static CV — it is a full living ingestion pipeline built with Rust, TypeScript, and a Redpanda/Kafka messaging layer that borrows design patterns straight from PostHog's own codebase to serve my profile locally. Spin it up from your terminal:
+
+docker run -p 8080:8080 -e CV_SECRET=<provided-on-request> ghcr.io/tyberium/cv:latest
+
+Source code: https://github.com/Tyberium/cv-pipeline
+
+You will need Docker to run it, but I am willing to bet that as ingestion engineers you have crossed paths with a container or two before. It is over-engineered, weird, and totally unnecessary by design. You may even recognise some of the event schemas.
+
+I am farily new to Rust, I started playing around with it towards the end of last year. I had come across it a few times, but it was after I installed Ruff (a Rust-based Python linter) and it linted the entire repo I was working on in around 0.3 seconds that I had that "Oh, so that is what they mean by faster than Python" moment. It is a language I would love to get more into, would  use Claude to help out with, and if I did get the job I would spend the interim getting up to speed so I turned up on day one ready to get stuck in.
 
 ---
 
@@ -83,28 +91,28 @@ You can find the source code for this pipeline here: https://github.com/tyberium
 * Own day-to-day pipeline health: maintenance, root-cause on failures, and data quality — with automation to cut repeat incidents and downtime.
 * Improve and simplify end-to-end data models; tackle architectural pain points and keep cloud spend down.
 * Set team standards for coding, pipeline patterns, and modern stack migration; built a data quality strategy and rule engine so people can find and trust data without asking engineering every time.
-* Mentor and onboard engineers, run syncs, retros, and planning, and keep the team unblocked.
-* Work with stakeholders to turn requirements into delivery, with clear lineage and governance.
+* Mentor and onboard engineers, run retros and planning sessions and act as go-to for unblocking engineers and figuring out complex code issues.
+* Work with stakeholders to turn requirements into delivery, with clear data lineage and governance.
 
 **Key Projects**
 
-* Designed and deployed critical data pipelines with zero downtime and no data loss, optimizing workloads to reduce costs and delivering a 25% reduction in the company's total AWS cloud bill.
-* Re-architected and migrated a six-year-old multi-tenant Data Lake to a new AWS platform. Established standards and coding patterns, defined access controls, and re-pathed ingestion (API to EventBridge and Firehose) and ETL workloads (ingest pipelines and raw tables to gold tables and views). Fully CI-integrated deployments to dev and production with drift prevention.
-* Broke down a billing data silo by untangling logic held across Excel spreadsheets, aligning definitions with the client and finance team, and automating reconciliation in a QuickSight dashboard shared by both parties — reducing billing queries to zero.
+* Designed and deployed critical data pipelines with zero downtime, delivering a 25% reduction in the company's total AWS cloud bill.
+* Re-architected and migrated a six-year-old multi-tenant Data Lake to a new AWS platform with full CI-integration and access control.
+* Broke down a billing data silo by automating reconciliation in a QuickSight dashboard shared by client and finance, reducing billing queries to zero.
 
 ### Data Engineer — Heni
 
 * September 2022 – May 2023 *
-* Develop and deploy efficient batch and streaming pipelines to ingest Web3 & Blockchain transaction data to power an NFT marketplace.
-* Work with data scientists and stakeholders to capture requirements, scale existing data infrastructure, and secure Personally Identifiable Information (PII).
-* Source, clean, and ingest disparate data from internal and external sources to a standard and easily consumed format.
-* Mentor Junior Data Engineers, deliver team-wide training, provide software reviews and feedback via GitHub, and run pair-programming sessions.
+* Developed and deployed efficient batch and streaming pipelines to ingest Web3 and Blockchain transaction data to power an NFT marketplace.
+* Worked with data scientists and stakeholders to capture requirements, scale existing data infrastructure, and secure Personally Identifiable Information (PII).
+* Sourced, cleaned, and ingested disparate data from internal and external sources to a standard and easily consumed format.
+* Mentored junior data engineers, delivered team-wide training, provided software reviews via GitHub, and ran pair-programming sessions.
 
 **Key Projects**
 
-* Developed pipelines to ingest Blockchain (Ethereum & Palm) transaction data. Built the necessary CI/CD workflows on GitHub Actions to deploy to AWS-based Databricks and optimized clusters to balance performance vs. cost.
-* Designed a team-wide framework for running unit tests of cloud-based services locally (Pytest, Docker), to expedite development and deployment processes.
-* Combined AWS serverless technologies (S3, Lambda, Glue, RDS, IAM, and Athena) with Delta Lake and PySpark to ingest data from a mix of APIs and internal databases to a single data warehouse (PostgreSQL) encompassing all customer information.
+* Developed pipelines to ingest Blockchain (Ethereum and Palm) transaction data with CI/CD on GitHub Actions to AWS Databricks, optimising clusters for performance vs cost.
+* Designed a team-wide framework for running unit tests of cloud-based services locally (Pytest, Docker).
+* Combined AWS serverless (S3, Lambda, Glue, RDS, IAM, Athena) with Delta Lake and PySpark to ingest APIs and internal databases into PostgreSQL.
 
 ### Data Engineer — Envelop Risk
 
@@ -182,4 +190,4 @@ You can find the source code for this pipeline here: https://github.com/tyberium
 
 ## Affiliations & Interests
 
-**Data Bristol** · Kiting · Southwest Amateur Gamers · Reading · DIY · PC/PS5 Gaming · Warhammer · Dog Training
+American Pool · Kiting · Southwest Amateur Gamers · Reading · DIY · PC/PS5 Gaming · Warhammer 40K · Dog Training
